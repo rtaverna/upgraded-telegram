@@ -1,0 +1,4 @@
+04 b = r;
+12 cout << "Enter a number: ";
+15 G(3,s);
+19 return 0;

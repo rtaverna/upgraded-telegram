@@ -1,0 +1,4 @@
+03 int r = (a - b) * (a * a + a * b + b * b);
+08 int main()
+13 cin >> s;
+17 G(s,4);
