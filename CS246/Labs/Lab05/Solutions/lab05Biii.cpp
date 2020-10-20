@@ -5,100 +5,97 @@
 template<typename T>
 void MidAppend(ds::sn::Node<T>*& data,ds::sn::Node<T>* addon)
 {
-	ds::sn::Node<T>* t = data;
-	ds::sn::Node<T>* s = addon;
-	int c = 0;
-
-	while(t != NULL)
+	if(data == NULL)
 	{
-		c += 1;
-		t = t->link;
+		data = addon;
 	}
-
-	c /= 2;
-	t = data;
-
-	while(s->link != NULL)
+	else if(addon != NULL)
 	{
-		s = s->link;
-	}
+		ds::sn::Node<T>* t = data;
+		ds::sn::Node<T>* s = addon;
+		int c = 0;
 
-	for(int i = 0;i < c;i += 1)
-	{
-		t = t->link;
-	}
+		//get the count of data
+		while(t != NULL)
+		{
+			c += 1;
+			t = t->link;
+		}
+
+		c /= 2;
+		t = data;
+
+		//get the last link of addon
+		while(s->link != NULL)
+		{
+			s = s->link;
+		}
+		
+		//get the middle node of data
+		for(int i = 0;i < c;i += 1)
+		{
+			t = t->link;
+		}
 	
-	s->link = t->link;
-	t->link = s;
+		s->link = t->link;
+		t->link = s;
+	}
 }
 
 bool NotEqual(ds::mn::Node<bool>* op1,ds::mn::Node<bool>* op2)
 {
 	ds::mn::Node<bool>* a = op1, *b = op2;
-	int c1 = 0, c2 = 0;
 
-	//count the digits in op1
-	while(a != NULL)
+	//get the last link of op1
+	while(a->next != NULL)
 	{
-		a = a->next;
-		c1 += 1;
-	}
-
-	//count the digits in op2
-	while(b != NULL)
-	{
-		b = b->next;
-		c2 += 1;
-	}
-	
-	a = op1;
-	b = op2;
-	
-	//if op1 has more digits than op2, get it to the
-	//same position; however, if a 1 is seen, op1 is
-	//not equal to op2, hence return true
-	while(c1 > c2)
-	{
-		if(a->data)
-		{
-			return true;
-		}
-		c1 -= 1;
 		a = a->next;
 	}
 
-	//if op2 has more digits than op1, get it to the 
-	//same position; however, if a 1 is seen, op2 is
-	//not equal op1, hence, return true
-	while(c2 > c1)
+	//get the last link of op2
+	while(b->next != NULL)
 	{
-		if(b->data)
-		{
-			return false;
-		}
-		c2 -= 1;
 		b = b->next;
 	}
 		
 	//check each digit of op1 and op2 in the same 
-	//position. if the digit of op1 is 1 while the
-	//digit of op2 is 0, then op1 is greater. if the 
-	//digit of op2 is 1 while the digit of op1 is
-	//0, then op2 is greater. if theay are the same
-	//the next digit has to be checked.
+	//position are different or the same in reverse. 
+	//if they are the same check to next digit; 
+	//otherwise, return true 
 	while(a != NULL && b != NULL)
 	{
 		if(a->data != b->data)
 		{
 			return true;
 		}
-		a = a->next;
-		b = b->next;
+		a = a->prev;
+		b = b->prev;
 	}
-	//op1 is equal to op2, so return false
+	
+	//if op1 has more digits than op2 check if
+	//any equals 1. if it does return true
+	while(a != NULL)
+	{
+		if(a->data)
+		{
+			return true;
+		}
+		a = a->prev;
+	}
+
+	//if op2 has more digits than op1 check if
+	//any equals 1. if it does return true
+	while(b != NULL)
+	{
+		if(b->data)
+		{
+			return true;
+		}
+		b = b->prev;
+	}
+	//op1 and op2 are equal
 	return false;
 }
-
 
 int main()
 {

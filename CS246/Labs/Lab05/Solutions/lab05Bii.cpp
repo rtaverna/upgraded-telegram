@@ -5,14 +5,21 @@
 template<typename T>
 void FrontAppend(ds::sn::Node<T>*& data,ds::sn::Node<T>* addon)
 {
-	ds::sn::Node<T>* t = addon;
-	
-	while(t->link != NULL)
+	if(data == NULL)
 	{
-		t = t->link;
+		data = addon;
 	}
-	t->link = data;
-	data = addon;
+	else if(addon != NULL)
+	{
+		ds::sn::Node<T>* t = addon;
+	
+		while(t->link != NULL)
+		{
+			t = t->link;
+		}
+		t->link = data;
+		data = addon;
+	}
 }
 
 bool LessThan(ds::mn::Node<bool>* op1,ds::mn::Node<bool>* op2)

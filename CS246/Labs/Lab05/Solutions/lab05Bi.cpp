@@ -5,13 +5,20 @@
 template<typename T>
 void EndAppend(ds::sn::Node<T>*& data,ds::sn::Node<T>* addon)
 {
-	ds::sn::Node<T>* t = data;
-	
-	while(t->link != NULL)
+	if(data == NULL) 
 	{
-		t = t->link;
+		data = addon;
 	}
-	t->link = addon;
+	else if(addon != NULL)
+	{
+		ds::sn::Node<T>* t = data;
+	
+		while(t->link != NULL)
+		{
+			t = t->link;
+		}
+		t->link = addon;
+	}
 }
 
 bool GreaterThan(ds::mn::Node<bool>* op1,ds::mn::Node<bool>* op2)
