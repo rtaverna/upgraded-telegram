@@ -1,5 +1,5 @@
-#ifndef STACK_H
-#define STACK_H
+#ifndef QUEUE_H
+#define QUEUE_H
 
 #include <iostream>
 #include <string>
@@ -9,14 +9,14 @@ using ulong = unsigned long;
 
 namespace ds
 {
-	//Stack Interface
+	//Queue Interface
 	template<class T>
-	class StackInterface
+	class QueueInterface
 	{
 		public:
-		virtual void Push(const T&) = 0;
-		virtual void Pop() = 0;
-		virtual const T& Top() const = 0;
+		virtual void Enqueue(const T&) = 0;
+		virtual void Dequeue() = 0;
+		virtual const T& Peek() const = 0;
 		virtual bool IsEmpty() const = 0;
 	};
 
@@ -29,46 +29,49 @@ namespace ds
 	namespace da
 	{
 		template<class T>
-		class Stack : public StackInterface<T>
+		class Queue : public QueueInterface<T>
 		{
 			private:
 			T* data;
-			ulong top;
+			ulong front;
+			ulong back;
 			ulong capacity;
 		
 			public:
-			Stack() : top(0), capacity(100) 
+			Queue() : front(0), back(0), capacity(101) 
 			{
 				data = new T[capacity];
 			}
 
-			Stack(ulong capacity) : top(0), capacity(capacity)
+			Queue(ulong capacity) : front(0), back(0), capacity(capacity+1)
 			{
 				data = new T[this->capacity];
 			}
 
-			Stack(const Stack<T>& obj)
+			Queue(const Queue<T>& obj)
 			{
-				top = obj.top;
+				front = obj.front;
+				back = obj.back;
 				capacity = obj.capacity;
 				data = new T[capacity];
 				
-				for(ulong i = 0;i < top;i += 1)
+				for(ulong i = front;i != back;i = (i + 1) % capacity)
 				{
 					data[i] = obj.data[i];
 				}
 			}
 
-			Stack<T>& operator=(const Stack<T>& rhs)
+			Queue<T>& operator=(const Queue<T>& rhs)
 			{
 				if(this != &rhs)
 				{
-					top = rhs.top;
+					front = rhs.front;
+					back = rhs.back;
 					capacity = rhs.capacity;
 					delete[] data;
 					data = new T[capacity];
 
-					for(ulong i = 0;i < top;i += 1)
+					for(ulong i = front;i != back;i = (i + 1) % capacity)
 					{
 						data[i] = rhs.data[i];
 					}
@@ -76,45 +79,45 @@ namespace ds
 				return *this;
 			}
 
-			~Stack() 
+			~Queue() 
 			{
 				delete[] data;
 			}
 
-			void Push(const T& item)
+			void Enqueue(const T& item)
 			{
-				if(top < capacity)
+				if((back + 1) % capacity != front)
 				{
-					data[top] = item;
-					top += 1;
+					data[back] = item;
+					back = (back + 1) % capacity;
 				}
 			}
 
-			void Pop() 
+			void Dequeue() 
 			{
-				if(top > 0)
+				if(front != back)
 				{
-					top -= 1;
+					front = (front + 1) % capacity;
 				}
 			}
 
-			const T& Top() const 
+			const T& Peek() const 
 			{
-				if(top == 0)
+				if(front == back)
 				{
-					throw "Empty Stack";
+					throw "Empty Queue";
 				}
-				return data[top-1];
+				return data[front];
 			}
 
 			bool IsEmpty() const 
 			{
-				return (top == 0);
+				return (front == back);
 			}
 
 			bool IsFull() const 
 			{
-				return (top == capacity);
+				return ((back + 1) % capacity == front);
 			}
 
 			std::string ToString() const 
@@ -122,15 +125,15 @@ namespace ds
 				std::stringstream out;
 				out << "[";
 				
-				if(top != 0)
+				if(front != back)
 				{
-					out << data[top-1];
+					out << data[front];
 				}
 				out << "]";
 				return out.str();
 			}
 
-			friend std::ostream& operator<<(std::ostream& out,const Stack<T>& obj)
+			friend std::ostream& operator<<(std::ostream& out,const Queue<T>& obj)
 			{
 				out << obj.ToString();
 				return out;
@@ -141,43 +144,64 @@ namespace ds
 	namespace sn
 	{	
 		template<class T>
-		class Stack : public StackInterface<T>
+		class Queue : public QueueInterface<T>
 		{
 			private:
 			Node<T>* head;
+			Node<T>* tail;
 		
 			public:
-			Stack() : head(NULL) {}
+			Queue() : head(NULL), tail(NULL) {}
 
-			Stack(const Stack<T>& obj)
+			Queue(const Queue<T>& obj)
 			{
 				head = Copy(obj.head);
+				tail = head;
+
+				while(tail->link != NULL)
+				{
+					tail = tail->link;
+				}
 			}
 
-			Stack<T>& operator=(const Stack<T>& rhs)
+			Queue<T>& operator=(const Queue<T>& rhs)
 			{
 				if(this != &rhs)
 				{
 					Clear(head);
 					head = Copy(rhs.head);
+					tail = head;
+
+					while(tail->link != NULL)
+					{
+						tail = tail->link;
+					}
 				}
 				return *this;
 			}
 
-			~Stack() 
+			~Queue() 
 			{
 				Clear(head);
 				head = NULL;
+				tail = NULL;
 			}
 
-			void Push(const T& item)
+			void Enqueue(const T& item)
 			{
-				Node<T>* t = Create(item);
-				t->link = head;
-				head = t;
+				if(head == NULL)
+				{
+					head = Create(item);
+					tail = head;
+				}
+				else
+				{
+					tail->link = Create(item);
+					tail = tail->link;
+				}
 			}
 
-			void Pop() 
+			void Dequeue() 
 			{
 				if(head != NULL)
 				{
@@ -185,14 +209,19 @@ namespace ds
 					head = head->link;
 					delete t;	
 					t = NULL;
+					
+					if(head == NULL)
+					{
+						tail = NULL;
+					}
 				}
 			}
 
-			const T& Top() const 
+			const T& Peek() const 
 			{
 				if(head == NULL)
 				{
-					throw "Empty Stack";
+					throw "Empty Queue";
 				}
 				return head->data;
 			}
@@ -215,7 +244,7 @@ namespace ds
 				return out.str();
 			}
 
-			friend std::ostream& operator<<(std::ostream& out,const Stack<T>& obj)
+			friend std::ostream& operator<<(std::ostream& out,const Queue<T>& obj)
 			{
 				out << obj.ToString();
 				return out;
@@ -224,70 +253,91 @@ namespace ds
 	}
 
 	namespace mn
-	{	
+	{
 		template<class T>
-		class Stack : public StackInterface<T>
+		class Queue : public QueueInterface<T>
 		{
 			private:
 			Node<T>* head;
+			Node<T>* tail;
 		
 			public:
-			Stack() : head(NULL) {}
+			Queue() : head(NULL), tail(NULL) {}
 
-			Stack(const Stack<T>& obj)
+			Queue(const Queue<T>& obj)
 			{
 				head = Copy(obj.head);
+				tail = head;
+
+				while(tail->next != NULL)
+				{
+					tail = tail->next;
+				}
 			}
 
-			Stack<T>& operator=(const Stack<T>& rhs)
+			Queue<T>& operator=(const Queue<T>& rhs)
 			{
 				if(this != &rhs)
 				{
 					Clear(head);
 					head = Copy(rhs.head);
+					tail = head;
+
+					while(tail->next != NULL)
+					{
+						tail = tail->next;
+					}
 				}
 				return *this;
 			}
 
-			~Stack() 
+			~Queue() 
 			{
 				Clear(head);
 				head = NULL;
+				tail = NULL;
 			}
 
-			void Push(const T& item)
+			void Enqueue(const T& item)
 			{
-				Node<T>* t = Create(item);
-				t->next = head;
-				
-				if(head != NULL)
+				if(head == NULL)
 				{
-					head->prev = t;
+					head = Create(item);
+					tail = head;
 				}
-				head = t;
+				else
+				{
+					tail->next = Create(item);
+					tail->next->prev = tail;
+					tail = tail->next;
+				}
 			}
 
-			void Pop() 
+			void Dequeue() 
 			{
 				if(head != NULL)
 				{
 					Node<T>* t = head;
 					head = head->next;
+					delete t;	
+					t = NULL;
 					
-					if(head != NULL)
+					if(head == NULL)
+					{
+						tail = NULL;
+					}
+					else
 					{
 						head->prev = NULL;
 					}
-					delete t;	
-					t = NULL;
 				}
 			}
 
-			const T& Top() const 
+			const T& Peek() const 
 			{
 				if(head == NULL)
 				{
-					throw "Empty Stack";
+					throw "Empty Queue";
 				}
 				return head->data;
 			}
@@ -310,7 +360,7 @@ namespace ds
 				return out.str();
 			}
 
-			friend std::ostream& operator<<(std::ostream& out,const Stack<T>& obj)
+			friend std::ostream& operator<<(std::ostream& out,const Queue<T>& obj)
 			{
 				out << obj.ToString();
 				return out;
@@ -319,4 +369,4 @@ namespace ds
 	}
 }
 
-#endif
+#endif	
